@@ -1,8 +1,12 @@
-from flask import Flask, render_template
+import sqlite3
+
+from flask import Flask, render_template, request, redirect, url_for, flash
+from werkzeug.security import generate_password_hash
 
 from database.db import get_db, init_db, seed_db
 
 app = Flask(__name__)
+app.secret_key = "dev-secret-change-in-prod"
 
 
 # ------------------------------------------------------------------ #
@@ -14,8 +18,40 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
+    if request.method == "POST":
+        name             = request.form.get("name", "").strip()
+        email            = request.form.get("email", "").strip().lower()
+        password         = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not name:
+            return render_template("register.html", error="Name is required.", name=name, email=email)
+        if not email or "@" not in email:
+            return render_template("register.html", error="Enter a valid email address.", name=name, email=email)
+        if len(password) < 8:
+            return render_template("register.html", error="Password must be at least 8 characters.", name=name, email=email)
+        if password != confirm_password:
+            return render_template("register.html", error="Passwords do not match.", name=name, email=email)
+
+        pw_hash = generate_password_hash(password)
+
+        try:
+            conn = get_db()
+            conn.execute(
+                "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+                (name, email, pw_hash),
+            )
+            conn.commit()
+        except sqlite3.IntegrityError:
+            return render_template("register.html", error="An account with that email already exists.", name=name, email=email)
+        finally:
+            conn.close()
+
+        flash("Account created successfully! Please sign in.", "success")
+        return redirect(url_for("login"))
+
     return render_template("register.html")
 
 
