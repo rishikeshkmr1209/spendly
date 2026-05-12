@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -97,7 +98,62 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    uid = session["user_id"]
+    db = get_db()
+
+    user = db.execute(
+        "SELECT id, name, email, created_at FROM users WHERE id = ?", (uid,)
+    ).fetchone()
+
+    stats = db.execute(
+        "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS txn_count FROM expenses WHERE user_id = ?",
+        (uid,)
+    ).fetchone()
+
+    top_cat_row = db.execute(
+        "SELECT category, SUM(amount) AS cat_total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
+        (uid,)
+    ).fetchone()
+
+    recent = db.execute(
+        "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT 10",
+        (uid,)
+    ).fetchall()
+
+    by_category = db.execute(
+        "SELECT category, SUM(amount) AS cat_total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC",
+        (uid,)
+    ).fetchall()
+
+    db.close()
+
+    max_cat_total = max((r["cat_total"] for r in by_category), default=1)
+
+    def fmt_date(d):
+        try:
+            return datetime.strptime(d, "%Y-%m-%d").strftime("%d %b %Y").lstrip("0")
+        except ValueError:
+            return d
+
+    recent_fmt = [
+        {"date": fmt_date(r["date"]), "description": r["description"],
+         "category": r["category"], "amount": r["amount"]}
+        for r in recent
+    ]
+
+    return render_template(
+        "profile.html",
+        user=user,
+        total_spent=stats["total"],
+        txn_count=stats["txn_count"],
+        top_category=top_cat_row["category"] if top_cat_row else "—",
+        recent=recent_fmt,
+        by_category=by_category,
+        max_cat_total=max_cat_total,
+    )
 
 
 @app.route("/expenses/add")

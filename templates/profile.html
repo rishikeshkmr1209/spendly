@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Spendly{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <div class="dashboard-inner">
+
+    <!-- Stat cards -->
+    <div class="stat-cards">
+      <div class="stat-card">
+        <span class="stat-label">Total Spent</span>
+        <span class="stat-value">₹{{ "%.2f"|format(total_spent) }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Transactions</span>
+        <span class="stat-value">{{ txn_count }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Top Category</span>
+        <span class="stat-value">{{ top_category }}</span>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="dashboard-grid">
+
+      <!-- Recent Transactions -->
+      <div class="dash-card">
+        <h2 class="dash-card-title">Recent Transactions</h2>
+        <table class="txn-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th class="txn-amount-col">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in recent %}
+            <tr>
+              <td class="txn-date">{{ t.date }}</td>
+              <td class="txn-desc">{{ t.description }}</td>
+              <td><span class="cat-badge cat-{{ t.category | lower }}">{{ t.category }}</span></td>
+              <td class="txn-amount">₹{{ "%.2f"|format(t.amount) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="txn-empty">No expenses yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- By Category -->
+      <div class="dash-card">
+        <h2 class="dash-card-title">By Category</h2>
+        <div class="cat-bars">
+          {% for row in by_category %}
+          {% set pct = (row.cat_total / max_cat_total * 100) | round(1) %}
+          <div class="cat-bar-row">
+            <div class="cat-bar-header">
+              <span class="cat-bar-name">{{ row.category }}</span>
+              <span class="cat-bar-amt">₹{{ "%.2f"|format(row.cat_total) }}</span>
+            </div>
+            <div class="cat-bar-track">
+              <div class="cat-bar-fill cat-color-{{ row.category | lower }}" style="width: {{ pct }}%"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,49 @@
+{
+  "skill_name": "flask-profile-dashboard",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a /profile route to this Flask app that shows the logged-in user's name, email, and join date. Redirect to /login if not authenticated. The app uses session['user_id'], raw sqlite3, and a users table with id, name, email, created_at columns. Project is at C:\\Users\\RishikeshKumar\\Documents\\Study\\AI\\claude\\campusX\\expense-tracker\\expense-tracker.",
+      "expected_output": "app.py /profile route added with auth guard, parameterised DB query (no password_hash), Python-side date formatting, and render_template call. profile.html created with card layout using CSS variable tokens only.",
+      "files": [],
+      "assertions": [
+        "The /profile route redirects to login when session.get('user_id') is falsy",
+        "The SQL SELECT does not include password_hash",
+        "The SQL query uses a ? placeholder (not string formatting)",
+        "The date is formatted with strftime in the Python route, not in the Jinja template",
+        "profile.html is created and extends base.html",
+        "profile.html displays name, email, and the formatted date using {{ }} syntax",
+        "No hardcoded hex colour values appear in profile.html or the new CSS rules"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Update the shared base.html navbar to be session-aware. When session['user_id'] exists, show 'Hi, <name>' and a Logout link. When there's no session, show the existing Sign in and Get started links. Project is at C:\\Users\\RishikeshKumar\\Documents\\Study\\AI\\claude\\campusX\\expense-tracker\\expense-tracker.",
+      "expected_output": "base.html navbar updated with a Jinja {% if session.get('user_id') %} block. Logged-in branch shows user name and logout link; guest branch shows sign in and register links. Brand logo remains outside the conditional.",
+      "files": [],
+      "assertions": [
+        "base.html contains a {% if session.get('user_id') %} conditional in the navbar",
+        "The logged-in branch displays the user's name from the session",
+        "The logged-in branch contains a link to url_for('logout')",
+        "The guest branch contains links to login and register",
+        "The brand logo/name link is outside the conditional block"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Implement the full authenticated profile dashboard for this Flask app: update /profile in app.py with auth guard and DB query, create templates/profile.html, update the navbar in base.html to be session-aware, and add the needed CSS to style.css. Project is at C:\\Users\\RishikeshKumar\\Documents\\Study\\AI\\claude\\campusX\\expense-tracker\\expense-tracker.",
+      "expected_output": "All four files correctly updated/created. Route guards access, fetches user data safely, formats date in Python. Profile card template uses only CSS variable tokens. Navbar conditional works for both logged-in and guest states.",
+      "files": [],
+      "assertions": [
+        "app.py /profile route has an auth guard that redirects unauthenticated users",
+        "app.py /profile SQL query does not select password_hash",
+        "app.py /profile passes a pre-formatted date string (not a raw datetime) to the template",
+        "templates/profile.html is created and shows at least name, email, and join date",
+        "templates/base.html navbar has a session-aware if/else block",
+        "static/css/style.css has new rules for .profile-card and .profile-section",
+        "All new CSS colour values use var(--…) tokens, not hardcoded hex",
+        "The db connection is closed after fetching the user record"
+      ]
+    }
+  ]
+}

@@ -589,3 +589,211 @@ a { color: inherit; text-decoration: none; }
     .nav-links a:not(.nav-cta) { display: none; }
     .hero { padding: 3rem 1rem 2rem; }
 }
+
+/* ── Navbar: logged-in state ── */
+.nav-user {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+}
+
+.nav-link {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.nav-link:hover { color: var(--accent); }
+
+/* ── Dashboard ── */
+.dashboard-section {
+  padding: 2.5rem 2rem 4rem;
+}
+
+.dashboard-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+/* Stat cards */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.stat-card {
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-muted);
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+/* Dashboard grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.dash-card {
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 2rem;
+}
+
+.dash-card-title {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 1.5rem;
+}
+
+/* Transactions table */
+.txn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.txn-table thead th {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-faint);
+  padding: 0 0 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.txn-table thead th.txn-amount-col { text-align: right; }
+
+.txn-table tbody tr {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.txn-table tbody tr:last-child { border-bottom: none; }
+
+.txn-table tbody td {
+  padding: 0.9rem 0;
+  vertical-align: middle;
+}
+
+.txn-date {
+  color: var(--ink-muted);
+  white-space: nowrap;
+  padding-right: 1rem !important;
+}
+
+.txn-desc { color: var(--ink); }
+
+.txn-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.txn-empty {
+  text-align: center;
+  color: var(--ink-faint);
+  padding: 2rem 0 !important;
+}
+
+/* Category badges */
+.cat-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cat-badge.cat-food          { background: #e8f5e9; color: #2e7d32; }
+.cat-badge.cat-transport     { background: #fff3e0; color: #e65100; }
+.cat-badge.cat-bills         { background: #e8eaf6; color: #3949ab; }
+.cat-badge.cat-health        { background: #fce4ec; color: #c62828; }
+.cat-badge.cat-entertainment { background: #f3e5f5; color: #6a1b9a; }
+.cat-badge.cat-shopping      { background: #fff8e1; color: #f57f17; }
+.cat-badge.cat-other         { background: var(--border-soft); color: var(--ink-muted); }
+
+/* Category bars */
+.cat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.cat-bar-row { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.cat-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+
+.cat-bar-name { color: var(--ink-soft); font-weight: 500; }
+
+.cat-bar-amt {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.825rem;
+}
+
+.cat-bar-track {
+  height: 5px;
+  background: var(--border-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.cat-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.cat-color-shopping      { background: #c17f24; }
+.cat-color-other         { background: #9e9e9e; }
+.cat-color-food          { background: #2e7d32; }
+.cat-color-bills         { background: #3949ab; }
+.cat-color-health        { background: #c62828; }
+.cat-color-entertainment { background: #6a1b9a; }
+.cat-color-transport     { background: #e65100; }
+
+/* Dashboard responsive */
+@media (max-width: 900px) {
+  .stat-cards { grid-template-columns: 1fr 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .stat-cards { grid-template-columns: 1fr; }
+  .dashboard-section { padding: 1.5rem 1rem 3rem; }
+}
