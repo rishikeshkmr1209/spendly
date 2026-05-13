@@ -8,7 +8,8 @@
       "Bash(python -c ' *)",
       "Bash(Remove-Item *)",
       "Bash(python -c \"from app import app; print\\('OK'\\)\")",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(python -m pytest tests/test_backend_connection.py -v)"
     ]
   }
 }

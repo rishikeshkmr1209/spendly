@@ -2,9 +2,38 @@
 
 {% block title %}Dashboard — Spendly{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
 {% block content %}
 <section class="dashboard-section">
   <div class="dashboard-inner">
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="filter-presets">
+        {% for p in presets %}
+          {% if p.date_from %}
+            <a href="{{ url_for('profile', date_from=p.date_from, date_to=p.date_to) }}"
+               class="filter-btn{% if active_preset == p.label %} filter-btn--active{% endif %}">
+              {{ p.label }}
+            </a>
+          {% else %}
+            <a href="{{ url_for('profile') }}"
+               class="filter-btn{% if active_preset == p.label %} filter-btn--active{% endif %}">
+              {{ p.label }}
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <form class="filter-custom" method="get" action="{{ url_for('profile') }}">
+        <input type="date" name="date_from" value="{{ date_from }}" class="filter-date-input">
+        <span class="filter-sep">to</span>
+        <input type="date" name="date_to" value="{{ date_to }}" class="filter-date-input">
+        <button type="submit" class="filter-apply-btn">Apply</button>
+      </form>
+    </div>
 
     <!-- Stat cards -->
     <div class="stat-cards">

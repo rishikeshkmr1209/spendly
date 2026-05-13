@@ -1,10 +1,11 @@
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from database.db import get_db, init_db, seed_db
+from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-change-in-prod"
@@ -96,63 +97,82 @@ def logout():
     return redirect(url_for("landing"))
 
 
+def _parse_date(value):
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+        return value
+    except (ValueError, TypeError):
+        return None
+
+
 @app.route("/profile")
 def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
     uid = session["user_id"]
-    db = get_db()
 
-    user = db.execute(
-        "SELECT id, name, email, created_at FROM users WHERE id = ?", (uid,)
-    ).fetchone()
+    # --- Preset date ranges ---
+    today = date.today()
 
-    stats = db.execute(
-        "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS txn_count FROM expenses WHERE user_id = ?",
-        (uid,)
-    ).fetchone()
+    this_month_from = today.replace(day=1).isoformat()
+    this_month_to   = today.isoformat()
 
-    top_cat_row = db.execute(
-        "SELECT category, SUM(amount) AS cat_total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
-        (uid,)
-    ).fetchone()
+    m3 = today.month - 3
+    y3 = today.year + (m3 - 1) // 12
+    m3 = ((m3 - 1) % 12) + 1
+    last3_from = date(y3, m3, today.day).isoformat()
 
-    recent = db.execute(
-        "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT 10",
-        (uid,)
-    ).fetchall()
+    m6 = today.month - 6
+    y6 = today.year + (m6 - 1) // 12
+    m6 = ((m6 - 1) % 12) + 1
+    last6_from = date(y6, m6, today.day).isoformat()
 
-    by_category = db.execute(
-        "SELECT category, SUM(amount) AS cat_total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC",
-        (uid,)
-    ).fetchall()
-
-    db.close()
-
-    max_cat_total = max((r["cat_total"] for r in by_category), default=1)
-
-    def fmt_date(d):
-        try:
-            return datetime.strptime(d, "%Y-%m-%d").strftime("%d %b %Y").lstrip("0")
-        except ValueError:
-            return d
-
-    recent_fmt = [
-        {"date": fmt_date(r["date"]), "description": r["description"],
-         "category": r["category"], "amount": r["amount"]}
-        for r in recent
+    presets = [
+        {"label": "This Month",    "date_from": this_month_from, "date_to": this_month_to},
+        {"label": "Last 3 Months", "date_from": last3_from,      "date_to": today.isoformat()},
+        {"label": "Last 6 Months", "date_from": last6_from,      "date_to": today.isoformat()},
+        {"label": "All Time",      "date_from": None,             "date_to": None},
     ]
+
+    # --- Parse & validate query params ---
+    raw_from  = request.args.get("date_from", "").strip() or None
+    raw_to    = request.args.get("date_to",   "").strip() or None
+    date_from = _parse_date(raw_from)
+    date_to   = _parse_date(raw_to)
+
+    if date_from and date_to and date_from > date_to:
+        flash("Start date must be before end date.", "error")
+        date_from = date_to = None
+
+    # --- Active preset detection ---
+    active_preset = None
+    for p in presets:
+        if p["date_from"] == date_from and p["date_to"] == date_to:
+            active_preset = p["label"]
+            break
+
+    user      = get_user_by_id(uid)
+    stats     = get_summary_stats(uid, date_from=date_from, date_to=date_to)
+    recent    = get_recent_transactions(uid, date_from=date_from, date_to=date_to)
+    breakdown = get_category_breakdown(uid, date_from=date_from, date_to=date_to)
+
+    by_category   = [{"category": r["name"], "cat_total": r["amount"]} for r in breakdown]
+    max_cat_total = max((r["cat_total"] for r in by_category), default=1)
 
     return render_template(
         "profile.html",
         user=user,
-        total_spent=stats["total"],
-        txn_count=stats["txn_count"],
-        top_category=top_cat_row["category"] if top_cat_row else "—",
-        recent=recent_fmt,
+        total_spent=stats["total_spent"],
+        txn_count=stats["transaction_count"],
+        top_category=stats["top_category"],
+        recent=recent,
         by_category=by_category,
         max_cat_total=max_cat_total,
+        presets=presets,
+        active_preset=active_preset,
+        date_from=date_from or "",
+        date_to=date_to or "",
     )
 
 
