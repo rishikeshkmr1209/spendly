@@ -27,7 +27,10 @@
 
       <!-- Recent Transactions -->
       <div class="dash-card">
-        <h2 class="dash-card-title">Recent Transactions</h2>
+        <div class="dash-card-header">
+          <h2 class="dash-card-title">Recent Transactions</h2>
+          <a href="{{ url_for('add_expense') }}" class="btn-primary">Add Expense</a>
+        </div>
         <table class="txn-table">
           <thead>
             <tr>

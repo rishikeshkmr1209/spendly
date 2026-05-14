@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from database.db import get_db, init_db, seed_db
+from database.queries import insert_expense, VALID_CATEGORIES
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-change-in-prod"
@@ -156,9 +157,55 @@ def profile():
     )
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    today = datetime.today().strftime("%Y-%m-%d")
+
+    if request.method == "POST":
+        raw_amount      = request.form.get("amount", "").strip()
+        raw_category    = request.form.get("category", "").strip()
+        raw_date        = request.form.get("date", "").strip()
+        raw_description = request.form.get("description", "").strip()
+
+        try:
+            amount = float(raw_amount)
+            if amount <= 0:
+                raise ValueError
+        except ValueError:
+            return render_template("add_expense.html",
+                error="Amount must be a number greater than 0.",
+                amount=raw_amount, category=raw_category,
+                date=raw_date or today, description=raw_description,
+                valid_categories=VALID_CATEGORIES)
+
+        if raw_category not in VALID_CATEGORIES:
+            return render_template("add_expense.html",
+                error="Please select a valid category.",
+                amount=raw_amount, category=raw_category,
+                date=raw_date or today, description=raw_description,
+                valid_categories=VALID_CATEGORIES)
+
+        try:
+            datetime.strptime(raw_date, "%Y-%m-%d")
+        except ValueError:
+            return render_template("add_expense.html",
+                error="Please enter a valid date.",
+                amount=raw_amount, category=raw_category,
+                date=raw_date or today, description=raw_description,
+                valid_categories=VALID_CATEGORIES)
+
+        description = raw_description if raw_description else None
+        insert_expense(user_id=session["user_id"], amount=amount,
+                       category=raw_category, date=raw_date,
+                       description=description)
+        return redirect(url_for("profile"))
+
+    return render_template("add_expense.html",
+        today=today, valid_categories=VALID_CATEGORIES,
+        error=None, amount="", category="", date=today, description="")
 
 
 @app.route("/expenses/<int:id>/edit")
